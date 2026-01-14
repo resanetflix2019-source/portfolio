@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sefer Kilic | Visual Diary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- 1. SWISS DESIGN SYSTEM --- */
+        :root {
+            --bg-color: #080808;
+            --text-color: #ffffff;
+            --accent-color: #FF0000;
+            --font-main: 'Helvetica Neue', 'Inter', Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            overflow: hidden; 
+        }
+
+        /* --- 2. HEADER & NAVIGATION --- */
+        .header-container {
+            position: fixed;
+            top: 40px; left: 40px;
+            z-index: 100;
+            mix-blend-mode: difference;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 0.9;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: -1.5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .filter-container { display: flex; gap: 10px; }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative; 
+            z-index: 101; /* Tıklanabilir olsun */
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        /* --- 3. GALLERY (SCROLL) --- */
+        .horizontal-scroll-wrapper {
+            display: flex;
+            height: 100vh;
+            padding-left: 20vw;
+            padding-right: 10vw;
+            align-items: center;
+            overflow-x: auto;
+            gap: 6vw;
+            scrollbar-width: none; 
+        }
+        .horizontal-scroll-wrapper::-webkit-scrollbar { display: none; }
+
+        /* Fotoğraf Kartları */
+        .photo-card {
+            flex: 0 0 auto;
+            position: relative;
+            transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: zoom-in;
+            opacity: 0; 
+        }
+
+        .photo-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            filter: grayscale(100%);
+            transition: filter 0.5s ease;
+        }
+
+        .photo-card:hover {
+            transform: scale(1.03) translateY(-15px);
+            z-index: 10;
+        }
+        .photo-card:hover img { filter: grayscale(0%); }
+
+        .card-meta {
+            position: absolute; bottom: -30px; left: 0;
+            font-size: 0.75rem; color: var(--accent-color);
+            opacity: 0; transition: opacity 0.3s;
+            font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .photo-card:hover .card-meta { opacity: 1; }
+
+        /* Boyutlar */
+        .size-s { width: 18vw; margin-top: 15vh; }
+        .size-m { width: 30vw; }
+        .size-l { width: 45vw; }
+        .size-v { width: 22vw; margin-top: -10vh; }
+
+        /* --- 4. ABOUT & CONTACT OVERLAY --- */
+        .info-btn {
+            position: fixed; bottom: 40px; right: 40px;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: #fff; color: #000;
+            border: none; font-size: 1.5rem;
+            cursor: pointer; z-index: 200;
+            transition: transform 0.3s;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        .info-btn:hover { transform: scale(1.1) rotate(90deg); }
+
+        .about-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(5,5,5,0.98);
+            z-index: 300;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s ease;
+            backdrop-filter: blur(10px);
+        }
+        .about-overlay.open { opacity: 1; pointer-events: auto; }
+
+        /* DÜZELTME BURADA YAPILDI: position: relative ve z-index eklendi */
+        .about-card {
+            max-width: 600px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #080808; /* Arka planı netleştirdik */
+            position: relative; /* ÖNEMLİ: Tıklamalar için */
+            z-index: 10; /* ÖNEMLİ: Kapatma katmanının üstünde dursun */
+        }
+
+        .about-header {
+            font-size: 3rem; font-weight: 900; margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+        
+        .about-name {
+            font-size: 1.5rem; margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .about-text {
+            font-size: 1rem; line-height: 1.7; color: #ccc; margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .divider {
+            width: 50px; height: 2px; background: #333; margin: 30px auto;
+        }
+
+        .social-links {
+            display: flex; justify-content: center; gap: 30px; margin-top: 40px;
+            position: relative; /* ÖNEMLİ */
+            z-index: 20; /* ÖNEMLİ */
+        }
+        
+        .social-icon {
+            color: #fff; font-size: 1.8rem; transition: color 0.3s, transform 0.3s;
+            text-decoration: none;
+            cursor: pointer; /* Tıklanabilir el işareti çıksın */
+            display: block; /* Linkin alanını genişlet */
+        }
+        .social-icon:hover { color: var(--accent-color); transform: translateY(-5px); }
+
+        /* --- 5. LIGHTBOX --- */
+        .lightbox {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .lightbox.active { opacity: 1; pointer-events: auto; }
+        .lightbox img { max-width: 90vw; max-height: 90vh; border: 1px solid #222; }
+        .close-btn { position: absolute; top: 30px; right: 40px; color: #fff; font-size: 2rem; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>SWISS<br>VISION.</h1>
+        <div class="subtitle">BY SEFER KILIC</div>
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterGallery('all')">ALL</button>
+            <button class="filter-btn" onclick="filterGallery('Zurich')">ZÜRICH</button>
+            <button class="filter-btn" onclick="filterGallery('Nature')">NATURE</button>
+            <button class="filter-btn" onclick="filterGallery('Travel')">TRAVEL</button>
+        </div>
+    </div>
+
+    <button class="info-btn" onclick="toggleAbout()">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="about-overlay" id="aboutOverlay">
+        <div style="position:absolute; width:100%; height:100%; z-index:1;" onclick="toggleAbout()"></div>
+        
+        <div class="about-card">
+            <div class="about-header">HELLO / GRÜEZI</div>
+            <div class="about-name">I AM SEFER KILIC</div>
+            
+            <p class="about-text">
+                Based in <strong>Zurich</strong>, I am a nature lover and photographer dedicated to capturing the raw beauty of the Swiss Alps.
+                My work focuses on the human connection with nature, seeking the majestic silence of the mountains and the genuine stories written on faces.
+            </p>
+
+            <div class="divider"></div>
+
+            <p class="about-text" style="font-style: italic; color: #999;">
+                In <strong>Zürich</strong> zuhause, bin ich ein Naturliebhaber und Fotograf, der die raue Schönheit der Schweizer Alpen festhält.
+                Mein Fokus liegt auf der Verbindung zwischen Mensch und Natur – ich suche die majestätische Stille der Berge und die echten Geschichten in den Gesichtern der Menschen.
+            </p>
+
+            <div class="social-links">
+                <a href="https://www.instagram.com/seferk2020/" target="_blank" class="social-icon" title="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+                
+                <a href="https://500px.com/p/seferk" target="_blank" class="social-icon" title="500px Portfolio">
+                    <i class="fa-brands fa-500px"></i>
+                </a>
+
+                <a href="https://www.facebook.com/seferk66" target="_blank" class="social-icon" title="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a href="mailto:contact@seferk@msn.ch" class="social-icon" title="Email Me">
+                    <i class="fa-regular fa-envelope"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="horizontal-scroll-wrapper" id="gallery"></div>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="close-btn">&times;</span>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <script src="db.js"></script>
+
+    <script>
+        const gallery = document.getElementById('gallery');
+        const randomSizes = ['size-s', 'size-m', 'size-l', 'size-m', 'size-v'];
+
+        function renderGallery() {
+            if (typeof photoDatabase === 'undefined') {
+                gallery.innerHTML = '<div style="color:white; padding:50px;">Please run "scan_gallery.py" to generate images.</div>';
+                return;
+            }
+
+            gallery.innerHTML = ''; 
+
+            photoDatabase.forEach((photo, index) => {
+                const sizeClass = randomSizes[Math.floor(Math.random() * randomSizes.length)];
+                const card = document.createElement('div');
+                card.className = `photo-card ${sizeClass} ${photo.category}`;
+                
+                card.style.animation = `fadeIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards ${index * 0.08}s`;
+
+                card.innerHTML = `
+                    <img src="${photo.src}" loading="lazy" onclick="openLightbox('${photo.src}')" alt="Sefer Kilic Photography">
+                    <div class="card-meta">${photo.category}</div>
+                `;
+                
+                gallery.appendChild(card);
+            });
+        }
+
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `@keyframes fadeIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }`;
+        document.head.appendChild(styleSheet);
+
+        function filterGallery(filterName) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText === filterName.toUpperCase()) btn.classList.add('active');
+            });
+
+            const cards = document.querySelectorAll('.photo-card');
+            cards.forEach(card => {
+                if (filterName === 'all' || card.classList.contains(filterName)) {
+                    card.style.display = 'block';
+                    setTimeout(() => card.style.opacity = '1', 50);
+                } else {
+                    card.style.opacity = '0';
+                    setTimeout(() => card.style.display = 'none', 500);
+                }
+            });
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        function toggleAbout() {
+            document.getElementById('aboutOverlay').classList.toggle('open');
+        }
+
+        const scrollContainer = document.querySelector(".horizontal-scroll-wrapper");
+        scrollContainer.addEventListener("wheel", (evt) => {
+            evt.preventDefault();
+            scrollContainer.scrollLeft += evt.deltaY * 3.5;
+            scrollContainer.style.scrollBehavior = "smooth";
+        });
+
+        renderGallery();
+    </script>
+</body>
+</html>
